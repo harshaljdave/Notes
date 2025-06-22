@@ -1,0 +1,57 @@
+{% extends "notes/layout.html" %}
+
+{% block body %}
+<div class="container-fluid px-3 px-md-4 py-4">
+    <div class="row justify-content-center">
+        <div class="col-12 col-sm-10 col-md-8 col-lg-6">
+            <h2 class="mb-4">Register</h2>
+
+            {% if message %}
+                <div class="alert alert-danger alert-dismissible fade show mb-3" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endif %}
+
+            <form action="{% url 'register' %}" method="post">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <input class="form-control form-control-lg" 
+                           autofocus 
+                           type="text" 
+                           name="username" 
+                           placeholder="Username">
+                </div>
+                <div class="mb-3">
+                    <input class="form-control form-control-lg" 
+                           type="email" 
+                           name="email" 
+                           placeholder="Email Address">
+                </div>
+                <div class="mb-3">
+                    <input class="form-control form-control-lg" 
+                           type="password" 
+                           name="password" 
+                           placeholder="Password">
+                </div>
+                <div class="mb-3">
+                    <input class="form-control form-control-lg" 
+                           type="password" 
+                           name="confirmation" 
+                           placeholder="Confirm Password">
+                </div>
+                <div class="mb-3">
+                    <button class="btn btn-primary w-100" type="submit">Register</button>
+                </div>
+            </form>
+
+            <div class="text-center">
+                <span class="text-muted">
+                    Already have an account? 
+                    <a href="{% url 'login' %}" class="text-decoration-none">Log In here</a>
+                </span>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
