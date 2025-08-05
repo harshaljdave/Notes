@@ -41,3 +41,6 @@ class Shared(models.Model):
     note = models.ForeignKey(Notes,on_delete=models.CASCADE)
     shared_on = models.DateTimeField(auto_now_add=True)
     permission = models.CharField(max_length=10, choices=[('view', 'View'), ('edit', 'Edit')], default='view')
+
+    class Meta:
+        unique_together = ('note', 'shared_with')
