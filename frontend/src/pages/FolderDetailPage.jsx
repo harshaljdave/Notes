@@ -34,7 +34,7 @@ const FolderDetailPage = () => {
       <Grid container spacing={2}>
         {folderData.notes.length > 0 ? (
           folderData.notes.map((note) => (
-            <Grid item xs={12} sm={6} md={4} key={note.id}>
+            <Grid size={{ xs: 12, sm: 6, md: 4 }} key={note.id}>
               <NoteCard note={note} />
             </Grid>
           ))

@@ -2,9 +2,17 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
 import { updateNote, deleteNote } from './noteDetailSlice'; // Import actions
 
-export const fetchNotes = createAsyncThunk('notes/fetchNotes', async () => {
-  const response = await axios.get('/api/notes/');
-  return response.data;
+export const fetchNotes = createAsyncThunk('notes/fetchNotes', async (tags = [], { rejectWithValue }) => {
+  try {
+    let url = '/api/notes/';
+    if (tags.length > 0) {
+      url += `?tags=${tags.join(',')}`;
+    }
+    const response = await axios.get(url);
+    return response.data;
+  } catch (error) {
+    return rejectWithValue(error.response.data);
+  }
 });
 
 export const createNote = createAsyncThunk('notes/createNote', async (noteData, { rejectWithValue }) => {
@@ -24,8 +32,27 @@ const initialState = {
 
 const notesSlice = createSlice({
   name: 'notes',
-  initialState,
-  reducers: {},
+  initialState: {
+    allNotes: [], // Holds the original, unfiltered list
+    filteredNotes: [], // Holds the notes to be displayed
+    status: 'idle',
+    error: null,
+    searchTerm: '',
+  },
+  reducers: {
+    setSearchTerm(state, action) {
+      state.searchTerm = action.payload;
+      const lowercasedTerm = state.searchTerm.toLowerCase();
+      if (lowercasedTerm) {
+        state.filteredNotes = state.allNotes.filter(note => 
+          note.title.toLowerCase().includes(lowercasedTerm) || 
+          note.content.toLowerCase().includes(lowercasedTerm)
+        );
+      } else {
+        state.filteredNotes = state.allNotes;
+      }
+    },
+  },
   extraReducers: (builder) => {
     builder
       .addCase(fetchNotes.pending, (state) => {
@@ -33,34 +60,33 @@ const notesSlice = createSlice({
       })
       .addCase(fetchNotes.fulfilled, (state, action) => {
         state.status = 'succeeded';
-        state.notes = action.payload;
+        state.allNotes = action.payload;
+        state.filteredNotes = action.payload; // Initially, display all notes
       })
       .addCase(fetchNotes.rejected, (state, action) => {
         state.status = 'failed';
         state.error = action.error.message;
       })
-      // Create Note
-      .addCase(createNote.pending, (state) => {
-        // Optionally set a specific loading state for creation
-      })
       .addCase(createNote.fulfilled, (state, action) => {
-        state.notes.unshift(action.payload); // Add the new note to the beginning of the array
+        state.allNotes.unshift(action.payload);
+        state.filteredNotes.unshift(action.payload);
       })
-      .addCase(createNote.rejected, (state, action) => {
-        // Optionally handle creation error
-      })
-      // Listen for the update action from the other slice
       .addCase(updateNote.fulfilled, (state, action) => {
-        const index = state.notes.findIndex(note => note.id === action.payload.id);
-        if (index !== -1) {
-          state.notes[index] = action.payload;
-        }
+        const update = (notes) => {
+          const index = notes.findIndex(note => note.id === action.payload.id);
+          if (index !== -1) {
+            notes[index] = action.payload;
+          }
+        };
+        update(state.allNotes);
+        update(state.filteredNotes);
       })
-      // Listen for the delete action
       .addCase(deleteNote.fulfilled, (state, action) => {
-        state.notes = state.notes.filter(note => note.id !== action.payload);
+        state.allNotes = state.allNotes.filter(note => note.id !== action.payload);
+        state.filteredNotes = state.filteredNotes.filter(note => note.id !== action.payload);
       });
   },
 });
 
+export const { setSearchTerm } = notesSlice.actions;
 export default notesSlice.reducer;

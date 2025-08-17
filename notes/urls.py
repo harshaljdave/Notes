@@ -20,4 +20,7 @@ urlpatterns = [
     path('api/favorites/ids/', views.get_favorite_ids, name='get_favorite_ids'),
     path('api/folders/<int:folder_id>/notes/<int:note_id>/', views.manage_note_in_folder, name='manage_note_in_folder'),
     path('api/notes/<int:note_id>/folders/', views.get_note_folders, name='get_note_folders'),
+    path('api/profile/change-password/', views.change_password, name='change_password'),
+    path('api/notes/archived/', views.get_archived_notes, name='get_archived_notes'),
+    path('api/notes/<int:note_id>/archive/', views.toggle_archive, name='toggle_archive'),
 ]

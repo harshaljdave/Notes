@@ -22,11 +22,31 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'django-insecure-0&*iohg1(ti(oyf!l1h-o0)tx-u%-8)v=@n3c-ybs0t-#zb$z='
 
+# The `DYNO` env var is set on Heroku CI, but it's not a real Heroku app, so we check for `CI` as well.
+IS_HEROKU_APP = "DYNO" in os.environ and not "CI" in os.environ
+
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+if not IS_HEROKU_APP:
+    DEBUG = True
 
-ALLOWED_HOSTS = []
+# SECURITY WARNING: keep the secret key used in production secret!
+if IS_HEROKU_APP:
+    SECRET_KEY = os.environ.get("SECRET_KEY")
 
+# Heroku adds the database URL to the environment, but we can fall back to a local SQLite DB for local development.
+if IS_HEROKU_APP:
+    DATABASES = {
+        "default": dj_database_url.config(conn_max_age=600, ssl_require=True),
+    }
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
+
+ALLOWED_HOSTS = ['*']
 
 # Application definition
 

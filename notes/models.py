@@ -11,6 +11,7 @@ class Notes(models.Model):
     editedBy = models.ForeignKey(User, models.SET_NULL, blank=True, null=True,related_name="editor")
     edit_time = models.DateTimeField(auto_now=True)
     created_on = models.DateTimeField(auto_now_add=True)
+    is_archived = models.BooleanField(default=False)
 
 class Folders(models.Model):
     user = models.ForeignKey(User,on_delete=models.CASCADE)

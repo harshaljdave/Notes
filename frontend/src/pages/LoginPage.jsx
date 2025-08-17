@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link as RouterLink } from 'react-router-dom';
 import { loginUser } from '../redux/authSlice';
-import { Container, TextField, Button, Typography, Box, Alert, CircularProgress } from '@mui/material';
+import { Container, TextField, Button, Typography, Box, Alert, CircularProgress, Link } from '@mui/material';
 
 const LoginPage = () => {
   const [username, setUsername] = useState('');
@@ -72,6 +72,9 @@ const LoginPage = () => {
           >
             {status === 'loading' ? <CircularProgress size={24} /> : 'Sign In'}
           </Button>
+          <Link component={RouterLink} to="/register" variant="body2">
+            {"Don't have an account? Sign Up"}
+          </Link>
         </Box>
       </Box>
     </Container>

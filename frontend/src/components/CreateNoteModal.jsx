@@ -1,12 +1,19 @@
-import React, { useState } from 'react';
-import { Modal, Box, Typography, TextField, Button, CircularProgress } from '@mui/material';
+import React, { useState, useEffect } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
+import { 
+  Modal, Box, Typography, TextField, Button, CircularProgress, FormControl, 
+  InputLabel, Select, MenuItem, Chip 
+} from '@mui/material';
+import { fetchFolders } from '../redux/foldersSlice';
+import { fetchTags } from '../redux/tagsSlice';
+import RichTextEditor from './RichTextEditor';
 
 const style = {
   position: 'absolute',
   top: '50%',
   left: '50%',
   transform: 'translate(-50%, -50%)',
-  width: 400,
+  width: 600, // Increased width for the editor
   bgcolor: 'background.paper',
   border: '2px solid #000',
   boxShadow: 24,
@@ -14,13 +21,37 @@ const style = {
 };
 
 const CreateNoteModal = ({ open, handleClose, handleSave, loading }) => {
+  const dispatch = useDispatch();
+  const { folders } = useSelector((state) => state.folders);
+  const { tags } = useSelector((state) => state.tags);
+
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
+  const [selectedFolder, setSelectedFolder] = useState('');
+  const [selectedTags, setSelectedTags] = useState([]);
+
+  useEffect(() => {
+    if (open) {
+      dispatch(fetchFolders());
+      dispatch(fetchTags());
+    }
+  }, [open, dispatch]);
 
   const onSave = () => {
-    handleSave({ title, content });
+    handleSave({ title, content, folder_id: selectedFolder, tags: selectedTags });
+    // Reset form state
     setTitle('');
     setContent('');
+    setSelectedFolder('');
+    setSelectedTags([]);
+  };
+
+  const handleTagClick = (tagName) => {
+    if (selectedTags.includes(tagName)) {
+      setSelectedTags(selectedTags.filter(t => t !== tagName));
+    } else {
+      setSelectedTags([...selectedTags, tagName]);
+    }
   };
 
   return (
@@ -43,19 +74,34 @@ const CreateNoteModal = ({ open, handleClose, handleSave, loading }) => {
           variant="standard"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
+          sx={{ mb: 2 }}
         />
-        <TextField
-          margin="dense"
-          id="content"
-          label="Content"
-          type="text"
-          fullWidth
-          multiline
-          rows={4}
-          variant="standard"
-          value={content}
-          onChange={(e) => setContent(e.target.value)}
-        />
+        <RichTextEditor content={content} onUpdate={setContent} />
+        <FormControl fullWidth size="small" sx={{ mt: 2, mb: 2 }}>
+          <InputLabel>Add to Folder (Optional)</InputLabel>
+          <Select
+            value={selectedFolder}
+            label="Add to Folder (Optional)"
+            onChange={(e) => setSelectedFolder(e.target.value)}
+          >
+            <MenuItem value=""><em>None</em></MenuItem>
+            {folders.map(folder => (
+              <MenuItem key={folder.id} value={folder.id}>{folder.name}</MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+        <Typography variant="subtitle1" sx={{ mb: 1 }}>Tags (Optional)</Typography>
+        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 2 }}>
+          {tags.map(tag => (
+            <Chip
+              key={tag.id}
+              label={tag.tag}
+              onClick={() => handleTagClick(tag.tag)}
+              color={selectedTags.includes(tag.tag) ? 'primary' : 'default'}
+              variant="outlined"
+            />
+          ))}
+        </Box>
         <Box sx={{ mt: 2, display: 'flex', justifyContent: 'flex-end' }}>
           <Button onClick={handleClose} sx={{ mr: 1 }}>Cancel</Button>
           <Button onClick={onSave} variant="contained" disabled={loading}>

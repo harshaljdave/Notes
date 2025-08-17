@@ -65,7 +65,7 @@ const noteDetailSlice = createSlice({
         state.note = action.payload;
       })
       .addCase(updateNote.rejected, (state, action) => {
-        state.error = action.payload.error; // Show update error
+        state.error = action.payload; // Pass the whole payload
       });
   },
 });

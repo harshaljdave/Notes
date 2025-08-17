@@ -1,10 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { fetchNoteById, updateNote, deleteNote, resetStatus } from '../redux/noteDetailSlice';
 import { 
   Container, Typography, Box, CircularProgress, Alert, Paper, Chip, Button, 
-  TextField, Fab, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, IconButton 
+  TextField, Fab, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, IconButton, Skeleton
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -12,10 +12,16 @@ import StarIcon from '@mui/icons-material/Star';
 import StarBorderIcon from '@mui/icons-material/StarBorder';
 import ShareIcon from '@mui/icons-material/Share';
 import FolderIcon from '@mui/icons-material/Folder';
+import ArchiveIcon from '@mui/icons-material/Archive';
 import { toggleFavorite } from '../redux/favoritesSlice';
 import { fetchTags } from '../redux/tagsSlice';
 import ShareModal from '../components/ShareModal';
 import ManageFoldersModal from '../components/ManageFoldersModal';
+import { showToast } from '../redux/toastSlice';
+import axios from 'axios';
+import UnarchiveIcon from '@mui/icons-material/Unarchive';
+import RichTextEditor from '../components/RichTextEditor';
+import DOMPurify from 'dompurify';
 
 const NoteDetailPage = () => {
   const { id } = useParams();
@@ -29,11 +35,14 @@ const NoteDetailPage = () => {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [selectedTags, setSelectedTags] = useState([]);
+  const [originalEditTime, setOriginalEditTime] = useState(null);
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
   const [shareModalOpen, setShareModalOpen] = useState(false);
   const [foldersModalOpen, setFoldersModalOpen] = useState(false);
+  const [confirmCancelOpen, setConfirmCancelOpen] = useState(false);
 
   const isFavorited = favoriteNoteIds.includes(note?.id);
+  const isDirty = note ? title !== note.title || content !== note.content || JSON.stringify(selectedTags.sort()) !== JSON.stringify(note.tags.map(t => t.name).sort()) : false;
 
   useEffect(() => {
     if (id) {
@@ -49,6 +58,7 @@ const NoteDetailPage = () => {
       setTitle(note.title);
       setContent(note.content);
       setSelectedTags(note.tags.map(t => t.name));
+      setOriginalEditTime(note.edit_time);
     }
   }, [note]);
 
@@ -58,16 +68,36 @@ const NoteDetailPage = () => {
   };
 
   const handleSave = async () => {
-    await dispatch(updateNote({ id, title, content, tags: selectedTags })).unwrap();
-    setIsEditing(false);
+    try {
+      await dispatch(updateNote({ 
+        id, 
+        title, 
+        content, 
+        tags: selectedTags, 
+        edit_time: originalEditTime 
+      })).unwrap();
+      setIsEditing(false);
+      dispatch(showToast({ message: 'Note updated successfully', severity: 'success' }));
+    } catch (e) {
+      dispatch(showToast({ message: e.error || 'Failed to update note', severity: 'error' }));
+    }
   };
 
   const handleCancel = () => {
+    if (isDirty) {
+      setConfirmCancelOpen(true);
+    } else {
+      setIsEditing(false);
+    }
+  };
+
+  const confirmCancel = () => {
     if (note) {
       setTitle(note.title);
       setContent(note.content);
       setSelectedTags(note.tags.map(t => t.name));
     }
+    setConfirmCancelOpen(false);
     setIsEditing(false);
   };
 
@@ -76,14 +106,25 @@ const NoteDetailPage = () => {
       .unwrap()
       .then(() => {
         navigate('/');
+        dispatch(showToast({ message: 'Note deleted', severity: 'info' }));
       })
       .catch((e) => {
-        console.error("Failed to delete note: ", e);
+        dispatch(showToast({ message: 'Failed to delete note', severity: 'error' }));
       });
   };
 
   const handleToggleFavorite = () => {
     dispatch(toggleFavorite({ noteId: note.id, isFavorited }));
+  };
+
+  const handleToggleArchive = async () => {
+    try {
+      const response = await axios.post(`/api/notes/${note.id}/archive/`);
+      dispatch(showToast({ message: response.data.is_archived ? 'Note archived' : 'Note unarchived', severity: 'success' }));
+      dispatch(fetchNoteById(id));
+    } catch (error) {
+      dispatch(showToast({ message: 'Failed to update archive status', severity: 'error' }));
+    }
   };
 
   const handleTagClick = (tagName) => {
@@ -98,8 +139,10 @@ const NoteDetailPage = () => {
 
   if (status === 'loading' || status === 'idle') {
     pageContent = (
-      <Box sx={{ display: 'flex', justifyContent: 'center', my: 4 }}>
-        <CircularProgress />
+      <Box sx={{ mt: 4 }}>
+        <Skeleton variant="text" sx={{ fontSize: '3rem' }} width="70%" />
+        <Skeleton variant="text" width="30%" />
+        <Skeleton variant="rectangular" height={200} sx={{ mt: 3 }} />
       </Box>
     );
   } else if (status === 'succeeded') {
@@ -115,19 +158,10 @@ const NoteDetailPage = () => {
               onChange={(e) => setTitle(e.target.value)}
               sx={{ mb: 2 }}
             />
-            <TextField
-              fullWidth
-              label="Content"
-              variant="outlined"
-              multiline
-              rows={10}
-              value={content}
-              onChange={(e) => setContent(e.target.value)}
-              sx={{ mb: 2 }}
-            />
+            <RichTextEditor content={content} onUpdate={setContent} />
             {note.is_owner && (
               <>
-                <Typography variant="subtitle1" sx={{ mb: 1 }}>Tags</Typography>
+                <Typography variant="subtitle1" sx={{ mt: 2, mb: 1 }}>Tags</Typography>
                 <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 2 }}>
                   {allTags.map(tag => (
                     <Chip
@@ -147,16 +181,30 @@ const NoteDetailPage = () => {
           </>
         ) : (
           <>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+            <Box sx={{ 
+              display: 'flex', 
+              flexDirection: { xs: 'column', md: 'row' }, // Stacks vertically on extra-small screens
+              justifyContent: 'space-between', 
+              alignItems: { xs: 'flex-start', md: 'center' } 
+            }}>
               <Box>
                 <Typography variant="h4" component="h1" gutterBottom>
                   {note.title}
                 </Typography>
+                {note.is_archived && (
+                  <Chip label="Archived" color="warning" sx={{ mb: 1 }} />
+                )}
                 <Typography variant="caption" color="text.secondary" gutterBottom>
                   Last updated by {note.edited_by || '...'} on {new Date(note.edit_time).toLocaleString()}
                 </Typography>
               </Box>
-              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+              <Box sx={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                flexWrap: 'wrap', // Allow buttons to wrap
+                gap: 1, 
+                mt: { xs: 2, md: 0 } // Add margin top on small screens
+              }}>
                 <IconButton onClick={handleToggleFavorite}>
                   {isFavorited ? <StarIcon color="warning" /> : <StarBorderIcon />}
                 </IconButton>
@@ -164,22 +212,31 @@ const NoteDetailPage = () => {
                   <>
                     <Button 
                       variant="outlined" 
+                      size="small"
+                      startIcon={note.is_archived ? <UnarchiveIcon /> : <ArchiveIcon />}
+                      onClick={handleToggleArchive}
+                    >
+                      {note.is_archived ? 'Unarchive' : 'Archive'}
+                    </Button>
+                    <Button 
+                      variant="outlined" 
+                      size="small"
                       startIcon={<FolderIcon />}
                       onClick={() => setFoldersModalOpen(true)}
-                      sx={{ mr: 1 }}
                     >
                       Folders
                     </Button>
                     <Button 
                       variant="outlined" 
+                      size="small"
                       startIcon={<ShareIcon />}
                       onClick={() => setShareModalOpen(true)}
-                      sx={{ mr: 1 }}
                     >
                       Share
                     </Button>
                     <Button 
                       variant="outlined" 
+                      size="small"
                       color="error" 
                       startIcon={<DeleteIcon />}
                       onClick={() => setOpenDeleteDialog(true)}
@@ -193,13 +250,16 @@ const NoteDetailPage = () => {
             {note.is_owner && (
               <Box sx={{ my: 2 }}>
                 {note.tags.map((tag) => (
-                  <Chip key={tag.id} label={tag.name} sx={{ mr: 1 }} />
+                  <Chip key={tag.id} label={tag.name} sx={{ mr: 1, mb: 1 }} />
                 ))}
               </Box>
             )}
-            <Typography variant="body1" sx={{ mt: 3, whiteSpace: 'pre-wrap' }}>
-              {note.content}
-            </Typography>
+            <Box 
+              component="div"
+              className="prose"
+              sx={{ mt: 3 }}
+              dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(note.content) }} 
+            />
           </>
         )}
       </Paper>
@@ -209,9 +269,9 @@ const NoteDetailPage = () => {
   }
 
   return (
-    <Container maxWidth="md">
+    <Container maxWidth="lg">
       {pageContent}
-      {status === 'succeeded' && note.permission === 'edit' && !isEditing && (
+      {status === 'succeeded' && note.permission === 'edit' && !isEditing && !note.is_archived && (
         <Fab
           color="secondary"
           aria-label="edit"
@@ -254,6 +314,21 @@ const NoteDetailPage = () => {
           />
         </>
       )}
+      <Dialog
+        open={confirmCancelOpen}
+        onClose={() => setConfirmCancelOpen(false)}
+      >
+        <DialogTitle>Discard Changes?</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            You have unsaved changes. Are you sure you want to discard them?
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setConfirmCancelOpen(false)}>Keep Editing</Button>
+          <Button onClick={confirmCancel} color="error">Discard</Button>
+        </DialogActions>
+      </Dialog>
     </Container>
   );
 };

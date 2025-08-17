@@ -1,101 +1,104 @@
-# Capstone Project: Notes
+# Capstone Note-Taking Application
 
-## Overview
-This is a dynamic note-taking web application built using Django that allows users to create, manage, organize and share their notes. The application provides a secure and intuitive interface for users to maintain their digital notes with rich functionality.
+A full-featured, modern note-taking web application built with a Django REST API backend and a React.js single-page application (SPA) frontend. The application is designed to be robust, scalable, and user-friendly, incorporating a polished UI and advanced features to prevent data loss and enhance usability.
 
-## Distinctiveness and Complexity
-This project is distinct and complex for several reasons:
+## Features
 
-1. **Advanced Data Relationships**: The application implements complex data models with relationships between users and their notes, including features like categorization, tagging, sharing and shared editing.
+### Core Functionality
+- **User Authentication:** Secure user registration and login system.
+- **Rich Text Notes:** Create, read, and update notes using a rich text editor with formatting options (bold, italics, lists).
+- **Folder Organization:** Group notes into folders for better organization.
+- **Tagging System:** Assign multiple tags to notes for flexible categorization.
+- **Note Search & Filtering:** Instantly search notes by title or content, and filter notes by their assigned tags.
+- **Favorites:** Mark important notes as favorites for quick access from a dedicated page.
+- **Note Sharing:** Share notes with other users with either "view" or "edit" permissions.
+- **Archiving:** Archive notes to hide them from the main view without permanently deleting them.
 
-2. **Full Authentication System**: Utilizes Django's authentication system to provide secure user registration, login, and personalized note management.
+### Advanced Features & UI/UX
+- **Fully Responsive Design:** The UI, including the navbar and note detail page, is optimized for a seamless experience on both desktop and mobile devices.
+- **Dark Mode:** A theme toggle allows users to switch between light and dark modes.
+- **Optimistic Locking:** Prevents data loss from concurrent edits. If one user saves a note while another is editing it, the second user is gracefully notified of the conflict.
+- **Polished User Feedback:**
+    - **Toast Notifications:** Non-intrusive feedback for actions like creating, updating, or deleting notes.
+    - **Loading Skeletons:** Content placeholders mimic the UI layout while data is being fetched, improving perceived performance.
+    - **Empty State Components:** Friendly and helpful messages for new users or when filters yield no results.
+    - **Confirmation Dialogs:** Prevents users from accidentally discarding unsaved changes.
 
-3. **Dynamic Frontend**: Implements JavaScript for real-time updates and interactive features, making it different from typical CRUD applications.
+## Tech Stack
 
-4. **Permission Management** : Share notes with read/write permissions and ability to modify or revoke the permissions or even access.
+### Backend
+- **Framework:** Django
+- **API:** Django REST Framework
+- **Database:** SQLite (default, configurable)
+- **CORS Handling:** `django-cors-headers`
 
-5. **Organizing Notes with Tags and Folders**: Users can efficiently organize and manage their notes by assigning tags and placing them into folders, enabling better categorization and quick retrieval.
+### Frontend
+- **Framework:** React.js (v19)
+- **Build Tool:** Vite
+- **UI Library:** Material-UI (MUI)
+- **State Management:** Redux Toolkit
+- **Routing:** React Router
+- **Rich Text Editor:** Tiptap
+- **API Client:** Axios
 
-6. **Robust Error Handling and User Feedback**: The application performs comprehensive error checks for user actions, ensuring that invalid or unauthorized operations are gracefully handled. Users receive clear, informative messages for both successful and unsuccessful actions, improving usability and preventing confusion.
-
-## File Structure
-
-### Core Files
-- `manage.py`: Django's command-line utility for administrative tasks
-- `requirements.txt`: List of Python dependencies
-- `db.sqlite3`: SQLite database file
-
-### Capstone Directory (Main Project)
-- `capstone/settings.py`: Project settings including database configuration
-- `capstone/urls.py`: Main URL configuration
-- `capstone/wsgi.py`: WSGI application entry point
-- `capstone/asgi.py`: ASGI application entry point
-
-### Notes App
-- `notes/models.py`: Defines database models for notes and user data
-- `notes/views.py`: Contains view logic for handling requests
-- `notes/urls.py`: URL patterns for the notes application
-- `notes/admin.py`: Admin interface configuration
-- `notes/apps.py`: Application configuration
-
-#### Templates Directory
-- `notes/templates/`: Contains HTML templates
-  - `layout.html`: Base template
-  - `index.html`: Home page template
-  - `NoteView.html`: Individual note view
-  - `Favourites.html` : View of Stared/favourited Notes
-  - `Folders.html` : View for all user folders
-  - `FolderView.html` : View for all notes inside specific folder
-  - `SharedNotes` : Page for viewing all the notes shared with user 
-  - `login.html`: Login page
-  - `register.html`: Registration page
-
-#### Static Files
-- `notes/static/`: Contains static files
-  - `M1`: Javascript and CSS code for muslti-select drop-down
-  - `FolderFunctions.js`: JavaScript code related to folder functionalities
-  - `Notesfucntions.js` : JavaScript related to notes related functionalities
-
-#### Custom Template Tags
-- `notes/templatetags/`: Custom template filters and tags
-
-## How to Run the Application
+## Setup and Installation
 
 ### Prerequisites
-- Python 3.10 or higher
-- pip (Python package installer)
+- Python 3.8+ and `pip`
+- Node.js 16+ and `npm`
 
-### Installation Steps
-```bash
-# Clone the repository
-git clone <repository-url>
-cd capstone
+### Backend Setup
 
-# Install required packages
-pip install -r requirements.txt
+1.  **Clone the repository:**
+    ```bash
+    git clone <repository-url>
+    cd capstone-project
+    ```
 
-# Make migrations
-python manage.py makemigrations
-python manage.py migrate
+2.  **Create and activate a virtual environment:**
+    ```bash
+    python -m venv venv
+    source venv/bin/activate  # On Windows, use `venv\Scripts\activate`
+    ```
 
-# Create superuser (optional)
-python manage.py createsuperuser
+3.  **Install Python dependencies:**
+    *(A `requirements.txt` file may need to be generated first: `pip freeze > requirements.txt`)*
+    ```bash
+    pip install -r requirements.txt
+    ```
 
-# Run the development server
-python manage.py runserver
-```
+4.  **Apply database migrations:**
+    ```bash
+    python manage.py migrate
+    ```
 
-The application will be available at `http://localhost:8000`
+5.  **Run the Django development server:**
+    ```bash
+    python manage.py runserver
+    ```
+    The backend API will be running at `http://127.0.0.1:8000`.
 
-### Required Packages
-All required packages are listed in `requirements.txt`:
-- Django
-No additional packages required
+### Frontend Setup
 
-## Additional Information
+1.  **Navigate to the frontend directory:**
+    ```bash
+    cd frontend
+    ```
 
-### Future Improvements
-- Add support for file attachments
-- Enhanced search functionality
-- Add export options for notes
-- Permission based sharing
+2.  **Install Node.js dependencies:**
+    ```bash
+    npm install
+    ```
+
+3.  **Run the React development server:**
+    ```bash
+    npm run dev
+    ```
+    The frontend application will be running at `http://localhost:5173`.
+
+## Performance & Stress Testing
+
+The application is ready for performance and stress testing. It is highly recommended to test against a production-like build, not the local development servers.
+
+- **Frontend:** Build the app using `npm run build` and analyze the output with tools like Google Lighthouse.
+- **Backend:** Deploy the Django app to a platform like Heroku or DigitalOcean using a production-grade server (e.g., Gunicorn). Test the deployed API endpoints with tools like Locust or k6.

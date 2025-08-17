@@ -32,7 +32,7 @@ const SharedNotesPage = () => {
       <Grid container spacing={2}>
         {notes.length > 0 ? (
           notes.map((note) => (
-            <Grid item xs={12} sm={6} md={4} key={note.id}>
+            <Grid size={{ xs: 12, sm: 6, md: 4 }} key={note.id}>
               <NoteCard note={note} />
             </Grid>
           ))

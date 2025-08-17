@@ -5,6 +5,8 @@ import noteDetailReducer from './noteDetailSlice';
 import foldersReducer from './foldersSlice';
 import favoritesReducer from './favoritesSlice';
 import tagsReducer from './tagsSlice';
+import toastReducer from './toastSlice';
+import themeReducer from './themeSlice';
 
 export const store = configureStore({
   reducer: {
@@ -14,5 +16,7 @@ export const store = configureStore({
     folders: foldersReducer,
     favorites: favoritesReducer,
     tags: tagsReducer,
+    toast: toastReducer,
+    theme: themeReducer,
   },
 });
