@@ -1,0 +1,14 @@
+[build]
+  # This is the directory where Netlify will run the build command.
+  base = "frontend/"
+  
+  # This is the command Netlify will run to build your site.
+  command = "npm run build"
+  
+  # This is the directory that contains the built site.
+  publish = "frontend/dist/"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
