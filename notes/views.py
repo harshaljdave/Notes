@@ -163,7 +163,7 @@ def get_notes(request):
         })
     return JsonResponse(data, safe=False)
 
-@login_required
+# @login_required
 def check_auth(request):
     if request.user.is_authenticated:
         return JsonResponse({

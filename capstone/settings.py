@@ -152,10 +152,12 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
     "https://68a888d2732a6e0007f54469--notes-rd.netlify.app",
+    "https://notes-rd.netlify.app",
 ]
 CORS_ALLOW_CREDENTIALS = True
 
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost:5173",
     "https://68a888d2732a6e0007f54469--notes-rd.netlify.app",
+    "https://notes-rd.netlify.app",
 ]
