@@ -4,5 +4,4 @@ capstone/__init__.py
 db.sqlite3
 notes/__init__.py
 /notes/__pycache__
-/notes/migrations
 /notes/templatetags/__pycache__
