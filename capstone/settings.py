@@ -152,6 +152,13 @@ CSRF_TRUSTED_ORIGINS = [
 ]
 
 
+# Cookie settings for cross-domain authentication in production
+if IS_HEROKU_APP:
+    SESSION_COOKIE_SAMESITE = 'None'
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SAMESITE = 'None'
+    CSRF_COOKIE_SECURE = True
+
 # Logging configuration for Heroku
 LOGGING = {
     'version': 1,
