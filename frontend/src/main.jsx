@@ -15,7 +15,8 @@ if (import.meta.env.PROD) {
 }
 
 axios.defaults.withCredentials = true; // Ensure cookies are sent with requests
-
+axios.defaults.xsrfCookieName = 'csrftoken'; // The name of the cookie to use for the CSRF token                                                        │
+axios.defaults.xsrfHeaderName = 'X-CSRFToken'; // The name of the HTTP header to use for the CSRF token
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <Provider store={store}>
