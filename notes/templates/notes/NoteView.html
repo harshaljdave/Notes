@@ -1,0 +1,178 @@
+{% extends "notes/layout.html" %}
+{% load static %}
+
+{% block body %}
+<div class="container-fluid px-2 px-md-4">
+    <!-- Header with title and buttons -->
+    <div class="row justify-content-between align-items-center my-3">
+        <!-- Title section with edit functionality -->
+        <div class="col-12 col-md-8 mb-2 mb-md-0">
+            <h2 id="ViewTitle" class="h3 mb-0">{{ note.title }}</h2>
+            <div id="EditHead" style="display:none" class="w-100">
+                <div class="d-flex gap-2">
+                    <input type="text" id="EditTitle" class="form-control form-control-lg">
+                    <button type="button" class="btn btn-outline-secondary" onclick="cancelEdit()">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action buttons -->
+        <div class="col-12 col-md-4">
+            <div class="d-flex flex-wrap justify-content-start justify-content-md-end gap-2">
+            {% if permission == "edit" %}
+            <button type="button" id="editButton" onclick="EditNote()" class="btn btn-outline-primary btn-sm">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pen" viewBox="0 0 16 16">
+                <path d="m13.498.795.149-.149a1.207 1.207 0 1 1 1.707 1.708l-.149.148a1.5 1.5 0 0 1-.059 2.059L4.854 14.854a.5.5 0 0 1-.233.131l-4 1a.5.5 0 0 1-.606-.606l1-4a.5.5 0 0 1 .131-.232l9.642-9.642a.5.5 0 0 0-.642.056L6.854 4.854a.5.5 0 1 1-.708-.708L9.44.854A1.5 1.5 0 0 1 11.5.796a1.5 1.5 0 0 1 1.998-.001m-.644.766a.5.5 0 0 0-.707 0L1.95 11.756l-.764 3.057 3.057-.764L14.44 3.854a.5.5 0 0 0 0-.708z"/>
+                </svg>
+            </button>
+            {% endif %}
+            <button type="button" id="saveButton" onclick="SaveEditNote()" style="display:none" class="btn btn-outline-success btn-sm">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-floppy-fill" viewBox="0 0 16 16">
+                <path d="M0 1.5A1.5 1.5 0 0 1 1.5 0H3v5.5A1.5 1.5 0 0 0 4.5 7h7A1.5 1.5 0 0 0 13 5.5V0h.086a1.5 1.5 0 0 1 1.06.44l1.415 1.414A1.5 1.5 0 0 1 16 2.914V14.5a1.5 1.5 0 0 1-1.5 1.5H14v-5.5A1.5 1.5 0 0 0 12.5 9h-9A1.5 1.5 0 0 0 2 10.5V16h-.5A1.5 1.5 0 0 1 0 14.5z"/>
+                <path d="M3 16h10v-5.5a.5.5 0 0 0-.5-.5h-9a.5.5 0 0 0-.5.5zm9-16H4v5.5a.5.5 0 0 0 .5.5h7a.5.5 0 0 0 .5-.5zM9 1h2v4H9z"/>
+                </svg>
+            </button>
+            <button id="favourite" type="button" onclick="favunfav({{note.id}},this.id)" class="btn btn-outline-primary btn-sm ms-1 pt-1" style=>
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-star" viewBox="0 0 16 16">
+                <path d="M2.866 14.85c-.078.444.36.791.746.593l4.39-2.256 4.389 2.256c.386.198.824-.149.746-.592l-.83-4.73 3.522-3.356c.33-.314.16-.888-.282-.95l-4.898-.696L8.465.792a.513.513 0 0 0-.927 0L5.354 5.12l-4.898.696c-.441.062-.612.636-.283.95l3.523 3.356-.83 4.73zm4.905-2.767-3.686 1.894.694-3.957a.56.56 0 0 0-.163-.505L1.71 6.745l4.052-.576a.53.53 0 0 0 .393-.288L8 2.223l1.847 3.658a.53.53 0 0 0 .393.288l4.052.575-2.906 2.77a.56.56 0 0 0-.163.506l.694 3.957-3.686-1.894a.5.5 0 0 0-.461 0z"/>
+                </svg>
+            </button>
+            <button id="unfavourite" type="button" onclick="favunfav({{note.id}},this.id)" class="btn btn-outline-primary btn-sm ms-1 pt-1">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-star-fill" viewBox="0 0 16 16">
+                <path d="M3.612 15.443c-.386.198-.824-.149-.746-.592l.83-4.73L.173 6.765c-.329-.314-.158-.888.283-.95l4.898-.696L7.538.792c.197-.39.73-.39.927 0l2.184 4.327 4.898.696c.441.062.612.636.282.95l-3.522 3.356.83 4.73c.078.443-.36.79-.746.592L8 13.187l-4.389 2.256z"/>
+                </svg>
+            </button>
+            <button id="addtofolder" type="button" class="btn btn-outline-primary btn-sm ms-1 pt-1" data-bs-toggle="modal" data-bs-target="#modifyFolderModal">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-folder-plus" viewBox="0 0 16 16">
+                <path d="m.5 3 .04.87a2 2 0 0 0-.342 1.311l.637 7A2 2 0 0 0 2.826 14H9v-1H2.826a1 1 0 0 1-.995-.91l-.637-7A1 1 0 0 1 2.19 4h11.62a1 1 0 0 1 .996 1.09L14.54 8h1.005l.256-2.819A2 2 0 0 0 13.81 3H9.828a2 2 0 0 1-1.414-.586l-.828-.828A2 2 0 0 0 6.172 1H2.5a2 2 0 0 0-2 2m5.672-1a1 1 0 0 1 .707.293L7.586 3H2.19q-.362.002-.683.12L1.5 2.98a1 1 0 0 1 1-.98z"/>
+                <path d="M13.5 9a.5.5 0 0 1 .5.5V11h1.5a.5.5 0 1 1 0 1H14v1.5a.5.5 0 1 1-1 0V12h-1.5a.5.5 0 0 1 0-1H13V9.5a.5.5 0 0 1 .5-.5"/>
+                </svg>
+            </button>
+            {% if note.createdBy == request.user %}
+            <button id="deleteNote" type="button" class="btn btn-outline-danger btn-sm ms-1 pt-1" onclick="deleteNote({{ note.id }})" title="Delete Note">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash-fill" viewBox="0 0 16 16">
+                    <path d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5M8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5m3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0"/>
+                </svg>
+            </button>
+            {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Tags section -->
+    {% if note.createdBy == request.user %}
+     
+     <div class="mb-3" id="tagdiv">
+         {% for tag in tags %}
+         <span class="badge rounded-pill text-bg-primary me-1 mb-1" name="AppliedTag">{{tag.tag}}</span>
+         {% empty %}
+         <span class="text-muted">No Tags given</span>
+         {% endfor %}
+        </div>
+        
+        <!-- Edit Tags section -->
+        <div class="overflow-y-auto mb-3" id="editTagdiv" style="max-height:150px; display:none">
+        </div>
+    {% endif %}
+
+    <!-- Content section with edit functionality -->
+    <div id="ViewContent" class="p-3 mb-3 border rounded">
+        {{ note.content|linebreaksbr }}
+    </div>
+
+    <textarea id="EditContent" rows="5" class="form-control mb-3" style="display:none"></textarea>
+
+        <!-- Note Info section -->
+    <div class="d-flex flex-column gap-1 text-muted small mb-3">
+        <span>Author: {{ note.createdBy }}</span>
+        <span>Created on: {{ note.created_on | time:"h:i A"}}, {{ note.created_on | date:"d M Y"}}</span>
+        <span id='EditorData'>Last edit by {{ note.editedBy }} on {{ note.edit_time|time:"h:i A" }}, {{ note.edit_time|date:"d M Y"}}</span>
+    </div>
+
+    <span class="d-none" id="check">{{ favourited }}</span>
+
+    <!--Edit Note Access Button-->
+    {% if note.createdBy == request.user %}
+    <button class="btn btn-outline-primary rounded-circle position-fixed bottom-0 end-0 mb-3 me-3 d-flex align-items-center justify-content-center shadow-sm" 
+    style="width: 48px; height: 48px;"
+    data-bs-toggle="modal" 
+    data-bs-target="#EditAccessModal"
+    data-bs-custom-class="custom-tooltip"
+    data-bs-toggle="tooltip" 
+    data-bs-placement="left" 
+    title="Manage Access">
+    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-people-fill" viewBox="0 0 16 16">
+        <path d="M7 14s-1 0-1-1 1-4 5-4 5 3 5 4-1 1-1 1zm4-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6m-5.784 6A2.24 2.24 0 0 1 5 13c0-1.355.68-2.75 1.936-3.72A6.3 6.3 0 0 0 5 9c-4 0-5 3-5 4s1 1 1 1zM4.5 8a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5"/>
+    </svg>
+    </button>
+    
+    <!--Edit Note Access Modal -->
+    <div class="modal fade" id="EditAccessModal" tabindex="-1" aria-labelledby="EditAccess" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">
+            <div class="modal-content">
+                <div class="modal-header border-bottom">
+                    <h5 class="modal-title fw-semibold" id="EditAccess">Manage Access</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4" id="accessModalBody">
+                    <!-- Loading spinner -->
+                    <div id="accessLoader" class="d-flex align-items-center justify-content-center py-5">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                    <!-- Access list container -->
+                    <div id="accessListContainer" class="d-none">
+                        <!-- Access list will be populated here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+
+    <!-- Edit Folder Modal -->
+        <div class="modal fade" id="modifyFolderModal" tabindex="-1" aria-labelledby="editFolder" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h1 class="modal-title fs-5" id="editFolder">Edit folder</h1>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body" id="Formlist">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    <!-- Toast -->
+    <div class="toast-container position-fixed top-0 end-0 p-3">
+      <div id="liveToast" class="toast text-bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="toast-header">
+          <strong class="me-auto">Notes</strong>
+          <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+        <div class="toast-body" id="toast-body" >
+        </div>
+      </div>
+    </div>
+
+    <!-- Add custom tooltip styling -->
+    <style>
+    .custom-tooltip {
+        --bs-tooltip-bg: var(--bs-primary);
+        --bs-tooltip-color: var(--bs-white);
+        font-size: 0.875rem;
+    }
+    </style>
+
+{% endblock %}
+
+{% block script %}
+{{ note.id|json_script:"currentNote" }}
+<script src="{% static 'notes/Notesfunctions.js' %}"></script>
+<script src="{% static 'notes/FolderFuntions.js' %}"></script>
+{% endblock %}

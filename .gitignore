@@ -1,0 +1,8 @@
+
+capstone/__init__.py
+/capstone/__pycache__
+db.sqlite3
+notes/__init__.py
+/notes/__pycache__
+/notes/migrations
+/notes/templatetags/__pycache__

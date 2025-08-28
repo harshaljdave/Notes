@@ -1,0 +1,72 @@
+{% extends 'notes/layout.html' %}
+{% load customfilter %}
+{% load static %}
+
+{% block body %}
+        <div class="row justify-content-between m-0">
+            <div class="col-auto">
+                <h1> {{Folder.name}}Shared Notes </h1>
+            </div>
+        </div>
+<!-- All Notes Display -->
+    <div id="NoteDiv" class="container-fluid">
+        {% for note in Notes %}
+            {% if forloop.counter0|modulo:3 == 0 and forloop.last %}
+                <div class="row ms-5">
+            {% elif forloop.counter0|modulo:3 == 0 %}
+                <div class="row justify-content-around mb-3">
+            {% endif %}
+            
+            <div class="col-3 bg-secondary-subtle rounded">
+                <div class="d-flex justify-content-between" style="cursor:pointer" onclick="ViewNote({{note.id}})">
+                    <span> {{note.title}} </span>
+                    <span> {{note.edit_time|date:"j M Y,"}} {{note.edit_time|time:"h:i A"}} </span>
+                </div>
+                <br>
+            </div>
+            
+            {% if forloop.counter0|modulo:3 == 2 or forloop.last %}
+                </div>
+            {% endif %}
+        {% empty %}
+            <h2> No Notes </h2>
+        {% endfor%}
+    </div>
+
+
+    <!-- Pagination -->
+    {% if Notes.has_next %}
+    <nav class="position-absolute bottom-0 start-50 translate-middle-x">
+        <ul class="pagination justify-content-center">
+        {% if Notes.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page=1" >&laquo; First page</a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="?page={{ Notes.previous_page_number }}" >{{ Notes.previous_page_number }}</a>
+            </li>
+        {% endif %}
+
+        <span class="current">
+            <li class="page-item active" aria-current="page">
+                <a class="page-link" href="{{ page_obj.number }}"> {{ Notes.number }}</a>
+            </li>
+        </span>
+
+        {% if Notes.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ Notes.next_page_number }}">{{ Notes.next_page_number }}</a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="?page={{ Notes.paginator.num_pages }}">{{ Notes.paginator.num_pages }}(last) &raquo;</a>
+            </li>
+        {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+
+{% endblock %}
+
+{% block script %}
+<script src="{% static 'notes/Notesfunctions.js' %}"></script>
+{% endblock %}
